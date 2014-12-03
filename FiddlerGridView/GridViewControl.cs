@@ -136,8 +136,7 @@ namespace FiddlerGridView
                                         dr["Name"] = childNode.Name;
                                         dr["Value"] = GetValueForNode(childNode);
                                     }
-                                    //else
-                                    //{
+
                                     for (int i = 0; i < dt.Columns.Count; i++)
                                     {
                                         string value = null;
@@ -154,7 +153,6 @@ namespace FiddlerGridView
                                             dr[i] = value;
                                         }
                                     }
-                                    //}
                                 }
                                 catch
                                 {
