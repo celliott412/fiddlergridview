@@ -204,7 +204,7 @@ namespace FiddlerGridView
             return null;
         }
 
-        private static string GetValueForNode(XmlNode node)
+        private string GetValueForNode(XmlNode node)
         {
             if (node.FirstChild != null)
             {
