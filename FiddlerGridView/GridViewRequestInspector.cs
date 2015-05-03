@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Fiddler;
 using System.Xml;
+using Newtonsoft.Json;
 
 namespace FiddlerGridView
 {
@@ -12,6 +13,45 @@ namespace FiddlerGridView
         private GridViewControl _control;
         private Encoding _encoding;
         private HTTPRequestHeaders _headers;
+
+        private enum ViewContentType
+        {
+            Json,
+            Xml
+        }
+
+        private XmlDocument CreateXml(string value, ViewContentType contentType)
+        {
+            if (contentType == ViewContentType.Xml)
+            {
+                // Xml
+                XmlDocument result = new XmlDocument();
+                result.XmlResolver = null;
+                result.LoadXml(value);
+                return result;
+            }
+            else
+            {
+                // Json
+                return JsonConvert.DeserializeXmlNode(value);
+            }
+        }
+
+        private ViewContentType GetViewContentType()
+        {
+            if (_headers != null)
+            {
+                string contentType = _headers["Content-Type"];
+                if (!string.IsNullOrEmpty(contentType))
+                {
+                    if (contentType.ToLower().Contains("json"))
+                    {
+                        return ViewContentType.Json;
+                    }
+                }
+            }
+            return ViewContentType.Xml;
+        }
         #endregion
 
         #region public
@@ -30,7 +70,7 @@ namespace FiddlerGridView
 
         public override int ScoreForContentType(string sMIMEType)
         {
-            if (sMIMEType.Contains("xml"))
+            if (sMIMEType.Contains("xml") || sMIMEType.Contains("json"))
             {
                 return 55;
             }
@@ -91,10 +131,10 @@ namespace FiddlerGridView
                         else
                         {
                             _encoding = Utilities.getEntityBodyEncoding(_headers, value);
-                            string stringFromArrayRemovingBOM = Utilities.GetStringFromArrayRemovingBOM(value, _encoding);
-                            XmlDocument dom = new XmlDocument();
-                            dom.XmlResolver = null;
-                            dom.LoadXml(stringFromArrayRemovingBOM);
+                            string bodyString = Utilities.GetStringFromArrayRemovingBOM(value, _encoding);
+
+                            XmlDocument dom = CreateXml(bodyString, GetViewContentType());
+
                             _control.Display(dom);
                         }
                     }
