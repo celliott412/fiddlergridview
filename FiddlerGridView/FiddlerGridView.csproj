@@ -69,6 +69,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GridViewInspector.cs" />
     <Compile Include="GridViewRequestInspector.cs" />
     <Compile Include="GridViewControl.cs">
       <SubType>UserControl</SubType>

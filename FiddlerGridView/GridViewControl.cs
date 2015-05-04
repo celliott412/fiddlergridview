@@ -319,6 +319,9 @@ namespace FiddlerGridView
 
         public void Display(XmlDocument dom)
         {
+            if (dom == null)
+                return;
+
             pbWorking.Visible = true;
             pbWorking.Maximum = 100;
             pbWorking.Value = 100;
@@ -342,7 +345,7 @@ namespace FiddlerGridView
                 inTreeNode.Text = name;
                 AddNode(dom.DocumentElement, inTreeNode, ref iNodeCount);
             }
-            catch (Exception)
+            catch
             {
             }
 
