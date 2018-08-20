@@ -71,12 +71,25 @@ namespace FiddlerGridView
                         bool primitiveArray = false;
                         if (showElements)
                         {
-                            if (node.XmlNode.FirstChild.ChildNodes.Count == 1)
+                            int totalCount = 0;
+                            foreach (XmlNode childNode in node.XmlNode.ChildNodes)
+                            {
+                                totalCount += childNode.ChildNodes.Count;
+                            }
+
+                            if (totalCount / node.XmlNode.ChildNodes.Count <= 1)
                             {
                                 primitiveArray = true;
                                 dt.Columns.Add("Name");
                                 dt.Columns.Add("Value");
                             }
+
+                            //if (node.XmlNode.FirstChild.ChildNodes.Count == 1)
+                            //{
+                            //    primitiveArray = true;
+                            //    dt.Columns.Add("Name");
+                            //    dt.Columns.Add("Value");
+                            //}
                         }
 
                         if (showAttributes)
@@ -133,8 +146,24 @@ namespace FiddlerGridView
                                 {
                                     if (primitiveArray)
                                     {
-                                        dr["Name"] = childNode.Name;
-                                        dr["Value"] = GetValueForNode(childNode);
+                                        if (childNode.HasChildNodes)
+                                        {
+                                            dr["Name"] = childNode.Name;
+                                            dr["Value"] = GetValueForNode(childNode);
+                                        }
+                                        else
+                                        {
+                                            if ((childNode.Name == "#text") && (childNode.ParentNode != null))
+                                            {
+                                                dr["Name"] = childNode.ParentNode.Name;
+                                                dr["Value"] = childNode.Value;
+                                            }
+                                            else
+                                            {
+                                                dr["Name"] = childNode.Name;
+                                                dr["Value"] = childNode.Value;
+                                            }
+                                        }
                                     }
 
                                     for (int i = 0; i < dt.Columns.Count; i++)
@@ -209,12 +238,12 @@ namespace FiddlerGridView
             if (node.FirstChild != null)
             {
                 if (node.FirstChild.HasChildNodes)
-                    return "<object> : " + node.ChildNodes.Count.ToString();
+                    return "(object) : " + node.ChildNodes.Count.ToString();
                 else
                     return node.FirstChild.Value;
             }
             else
-                return "<null>";
+                return "(null)";
         }
 
         private void spView_SplitterMoved(object sender, SplitterEventArgs e)
@@ -327,7 +356,7 @@ namespace FiddlerGridView
             pbWorking.Value = 100;
             Application.DoEvents();
 
-            XmlTreeNode inTreeNode = new XmlTreeNode("", null);
+            XmlTreeNode inTreeNode = new XmlTreeNode("", dom.DocumentElement);
             uint iNodeCount = 0;
             try
             {

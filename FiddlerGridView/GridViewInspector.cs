@@ -58,7 +58,7 @@ namespace FiddlerGridView
                 foreach (DictionaryEntry dictionaryEntry in new SortedList((IDictionary)hashtable))
                 {
                     string sText = dictionaryEntry.Key.ToString();
-                    XmlElement node = doc.CreateElement(sText);
+                    XmlElement node = doc.CreateElement(XmlConvert.EncodeNmToken(sText));
                     inTreeNode.AppendChild(node);
                     ++iNodeCount;
                     this.CreateNodes(doc, node, dictionaryEntry.Value, false, ref iNodeCount);
@@ -69,7 +69,7 @@ namespace FiddlerGridView
                 string sText = o != null ? (!(o is DateTime) ? (!(o is double) ? o.ToString() : ((double)o).ToString("R", (IFormatProvider)CultureInfo.InvariantCulture)) : ((DateTime)o).ToString("r")) : "(null)";
                 if (bParentIsArray)
                 {
-                    XmlElement node = doc.CreateElement(sText);
+                    XmlElement node = doc.CreateElement(XmlConvert.EncodeNmToken(sText));
                     inTreeNode.AppendChild(node);
                     ++iNodeCount;
                 }
