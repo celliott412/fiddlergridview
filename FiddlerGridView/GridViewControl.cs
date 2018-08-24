@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using FiddlerGridView.Properties;
 using Fiddler;
 using System.Xml;
+using System.Linq;
 
 [assembly: Fiddler.RequiredVersion("2.2.7.0")]
 
@@ -16,6 +17,8 @@ namespace FiddlerGridView
     public partial class GridViewControl : UserControl
     {
         #region private
+        private TreeNode _currentNode;
+
         private void AddNode(XmlNode inXmlNode, TreeNode inTreeNode, ref uint iNodeCount)
         {
             if (inXmlNode.HasChildNodes)
@@ -56,6 +59,11 @@ namespace FiddlerGridView
             Application.DoEvents();
             try
             {
+                // Clear any background colors
+                SetChildNodeSelection(_currentNode, -1, -1);
+
+                _currentNode = treeNode;
+
                 dgvView.DataSource = null;
                 dgvView.AutoGenerateColumns = false;
                 lblGridViewStatus.Text = "Row count: 0";
@@ -67,31 +75,53 @@ namespace FiddlerGridView
 
                     if (node.XmlNode.HasChildNodes)
                     {
-                        // Columns
-                        bool primitiveArray = false;
+                        bool objectOrArray = false;
+
+                        // Determine if this an Object or not
                         if (showElements)
                         {
-                            int totalCount = 0;
+                            int count = 0;
+                            List<string> sigs = new List<string>();
                             foreach (XmlNode childNode in node.XmlNode.ChildNodes)
                             {
-                                totalCount += childNode.ChildNodes.Count;
+                                if (childNode.ChildNodes.Count > 1)
+                                {
+                                    sigs.Add(string.Join("|", childNode.ChildNodes.Cast<XmlNode>().Select(p => p.Name)));
+                                }
+                                else
+                                {
+                                    if (childNode.ChildNodes.Count == 1)
+                                    {
+                                        if (childNode.ChildNodes[0].Name == "#text")
+                                        {
+                                            sigs.Add(childNode.Name);
+                                        }
+                                        else
+                                        {
+                                            sigs.Add(childNode.ChildNodes[0].Name);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        sigs.Add(childNode.Name);
+                                    }
+                                }
+
+                                if (count++ >= 3)
+                                {
+                                    break;
+                                }
                             }
 
-                            if (totalCount / node.XmlNode.ChildNodes.Count <= 1)
+                            if ((count == 1) || ((count > 1) && !sigs.All(p => p == sigs.First())))
                             {
-                                primitiveArray = true;
+                                objectOrArray = true;
                                 dt.Columns.Add("Name");
                                 dt.Columns.Add("Value");
                             }
-
-                            //if (node.XmlNode.FirstChild.ChildNodes.Count == 1)
-                            //{
-                            //    primitiveArray = true;
-                            //    dt.Columns.Add("Name");
-                            //    dt.Columns.Add("Value");
-                            //}
                         }
 
+                        // Columns
                         if (showAttributes)
                         {
                             // Attributes for column names
@@ -113,7 +143,7 @@ namespace FiddlerGridView
                                 dt.Columns.Add(name);
                         }
 
-                        if (showElements && !primitiveArray)
+                        if (showElements && !objectOrArray)
                         {
                             // Elements for column names
                             var names = new Dictionary<string, string>();
@@ -144,7 +174,7 @@ namespace FiddlerGridView
                                 DataRow dr = dt.NewRow();
                                 try
                                 {
-                                    if (primitiveArray)
+                                    if (objectOrArray)
                                     {
                                         if (childNode.HasChildNodes)
                                         {
@@ -169,7 +199,7 @@ namespace FiddlerGridView
                                     for (int i = 0; i < dt.Columns.Count; i++)
                                     {
                                         string value = null;
-                                        if (showElements && !primitiveArray)
+                                        if (showElements && !objectOrArray)
                                         {
                                             value = GetChildValueByName(childNode.ChildNodes, dt.Columns[i].ColumnName);
                                         }
@@ -287,6 +317,17 @@ namespace FiddlerGridView
             FiddlerApplication.Prefs.SetBoolPref("fiddler.inspectors.gridview.showelements", mnuShowElements.Checked);
         }
 
+        private void dgvView_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (tvSelection.SelectedNode != null)
+            {
+                if ((tvSelection.SelectedNode.Nodes.Count > 0) && (e.RowIndex < tvSelection.SelectedNode.Nodes.Count))
+                {
+                    SetChildNodeSelection(tvSelection.SelectedNode, e.RowIndex, e.ColumnIndex);
+                }
+            }
+        }
+
         private void mnuShowTree_CheckedChanged(object sender, EventArgs e)
         {
             spView.Panel1Collapsed = !mnuShowTree.Checked;
@@ -311,6 +352,30 @@ namespace FiddlerGridView
                 Utilities.CopyToClipboard(tvSelection.SelectedNode.Text);
                 e.Handled = true;
                 e.SuppressKeyPress = true;
+            }
+        }
+
+        private void SetChildNodeSelection(TreeNode parent, int rowIndex, int colIndex)
+        {
+            // Set selection
+            if ((parent != null) && (parent.Nodes != null))
+            {
+                foreach (TreeNode node in parent.Nodes)
+                {
+                    if (node.Index == rowIndex)
+                    {
+                        node.BackColor = SystemColors.ActiveCaption;
+                        if (colIndex >= 0)
+                        {
+                            SetChildNodeSelection(node, colIndex, -1);
+                        }
+                    }
+                    else
+                    {
+                        node.BackColor = tvSelection.BackColor;
+                        SetChildNodeSelection(node, -1, -1);
+                    }
+                }
             }
         }
         #endregion

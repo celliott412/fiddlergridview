@@ -202,7 +202,7 @@ namespace FiddlerGridView
                             _control.Display(CreateXml(bodyString, GetViewContentType()));
                         }
                     }
-                    catch (Exception ex)
+                    catch
                     {
                         Clear();
                     }

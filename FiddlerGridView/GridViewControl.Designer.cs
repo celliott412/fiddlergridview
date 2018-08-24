@@ -98,6 +98,7 @@
             this.dgvView.RowHeadersWidth = 22;
             this.dgvView.Size = new System.Drawing.Size(320, 197);
             this.dgvView.TabIndex = 0;
+            this.dgvView.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvView_CellClick);
             // 
             // contextMenuStrip1
             // 
