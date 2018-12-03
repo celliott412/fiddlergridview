@@ -27,18 +27,18 @@ namespace FiddlerGridView
                 for (int i = 0; i < count; i++)
                 {
                     XmlNode node = inXmlNode.ChildNodes[i];
-                    string name = node.Name;
+                    string text = GetNodeText(node);
                     if ((node.Attributes != null) && (node.Attributes.Count > 0))
                     {
-                        name += " [";
+                        text += " [";
                         foreach (XmlAttribute attribute in node.Attributes)
                         {
-                            name += " " + attribute.Name + "=" + attribute.Value;
+                            text += " " + attribute.Name + "=" + attribute.Value;
                         }
-                        name += " ]";
+                        text += " ]";
                     }
 
-                    XmlTreeNode treeNode = new XmlTreeNode(name, node);
+                    XmlTreeNode treeNode = new XmlTreeNode(text, node);
                     inTreeNode.Nodes.Add(treeNode);
 
                     TreeNode node2 = inTreeNode.Nodes[i];
@@ -49,6 +49,41 @@ namespace FiddlerGridView
             else
             {
                 inTreeNode.Text = inXmlNode.OuterXml.Trim();
+            }
+        }
+
+        private string GetNodeText(XmlNode node)
+        {
+            if (node.Name == "Object")
+            {
+                return "{}";
+            }
+            else
+            {
+                if (node.Name == "Array")
+                {
+                    return "[]";
+                }
+            }
+            return node.Name;
+        }
+
+        private string GetSafeName(DataColumnCollection existingCols, string name, string possiblePrefix)
+        {
+            if (existingCols.Contains(name))
+            {
+                if (existingCols.Contains(possiblePrefix + name))
+                {
+                    return possiblePrefix + name + $"_{existingCols.Count}";
+                }
+                else
+                {
+                    return possiblePrefix + name;
+                }
+            }
+            else
+            {
+                return name;
             }
         }
 
@@ -72,6 +107,7 @@ namespace FiddlerGridView
                 if ((node != null) && (node.XmlNode != null))
                 {
                     DataTable dt = new DataTable();
+                    Dictionary<DataColumn, string> columnMappings = new Dictionary<DataColumn, string>();
 
                     if (node.XmlNode.HasChildNodes)
                     {
@@ -116,8 +152,8 @@ namespace FiddlerGridView
                             if ((count == 1) || ((count > 1) && !sigs.All(p => p == sigs.First())))
                             {
                                 objectOrArray = true;
-                                dt.Columns.Add("Name");
-                                dt.Columns.Add("Value");
+                                columnMappings.Add(dt.Columns.Add(GetSafeName(dt.Columns, "Name", "")), "Name");
+                                columnMappings.Add(dt.Columns.Add(GetSafeName(dt.Columns, "Value", "")), "Value");
                             }
                         }
 
@@ -134,13 +170,17 @@ namespace FiddlerGridView
                                     {
                                         var name = attribute.Name;
                                         if (!names.ContainsKey(name))
+                                        {
                                             names.Add(name, name);
+                                        }
                                     }
                                 }
                             }
 
                             foreach (string name in names.Keys)
-                                dt.Columns.Add(name);
+                            {
+                                columnMappings.Add(dt.Columns.Add(GetSafeName(dt.Columns, name, "attr.")), name);
+                            }
                         }
 
                         if (showElements && !objectOrArray)
@@ -161,7 +201,9 @@ namespace FiddlerGridView
                             }
 
                             foreach (string name in names.Keys)
-                                dt.Columns.Add(name);
+                            {
+                                columnMappings.Add(dt.Columns.Add(GetSafeName(dt.Columns, name, "")), name);
+                            }
                         }
 
                         // Rows
@@ -201,11 +243,11 @@ namespace FiddlerGridView
                                         string value = null;
                                         if (showElements && !objectOrArray)
                                         {
-                                            value = GetChildValueByName(childNode.ChildNodes, dt.Columns[i].ColumnName);
+                                            value = GetChildValueByName(childNode.ChildNodes, columnMappings[dt.Columns[i]]);
                                         }
                                         if ((value == null) && showAttributes)
                                         {
-                                            value = GetAttributeValueByName(childNode.Attributes, dt.Columns[i].ColumnName);
+                                            value = GetAttributeValueByName(childNode.Attributes, columnMappings[dt.Columns[i]]);
                                         }
                                         if (value != null)
                                         {
@@ -365,6 +407,7 @@ namespace FiddlerGridView
                     if (node.Index == rowIndex)
                     {
                         node.BackColor = SystemColors.ActiveCaption;
+                        node.EnsureVisible();
                         if (colIndex >= 0)
                         {
                             SetChildNodeSelection(node, colIndex, -1);
