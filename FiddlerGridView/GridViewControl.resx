@@ -117,6 +117,16 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="cbFilter.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
+        xAAADsQBlSsOGwAAAKJJREFUOE/dk8ENAyEMBCkgTYUfD/5UQic0QkN50ANfZxdZCvFxOnT5ZaWRAO9a
+        9knnROQnXO+9ALlJYYMHeOWcxXu/Bb3MMOsoHJ6tNYkxLgMz9NDLDBj5IVxKrXUZmqGHXo19hMfLVQ6j
+        W6Fwuso8utrXgmG5yunoVhwPfK1yOboVjPzCEkIY8Mw3Le+JoZTSQBtoZVN/0sCgFaPVL7qPuDcNo7xe
+        aYr7VQAAAABJRU5ErkJggg==
+</value>
+  </data>
   <metadata name="contextMenuStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
   </metadata>

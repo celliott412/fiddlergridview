@@ -18,6 +18,7 @@ namespace FiddlerGridView
     {
         #region private
         private TreeNode _currentNode;
+        private BindingSource _bindingSource;
 
         private void AddNode(XmlNode inXmlNode, TreeNode inTreeNode, ref uint iNodeCount)
         {
@@ -98,6 +99,11 @@ namespace FiddlerGridView
                 SetChildNodeSelection(_currentNode, -1, -1);
 
                 _currentNode = treeNode;
+
+                if (_bindingSource != null)
+                {
+                    _bindingSource.DataSource = null;
+                }
 
                 dgvView.DataSource = null;
                 dgvView.AutoGenerateColumns = false;
@@ -263,7 +269,15 @@ namespace FiddlerGridView
                         }
                     }
 
-                    dgvView.DataSource = dt;
+                    if (_bindingSource == null)
+                    {
+                        _bindingSource = new BindingSource();
+                    }
+
+                    _bindingSource.DataSource = dt;
+                    SetFilter();
+
+                    dgvView.DataSource = _bindingSource;
                     dgvView.AutoGenerateColumns = true;
                     dgvView.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.DisplayedCells);
                     lblGridViewStatus.Text = string.Format("Row count: {0}", dt.Rows.Count);
@@ -382,6 +396,11 @@ namespace FiddlerGridView
             FiddlerApplication.Prefs.SetStringPref("fiddler.inspectors.gridview.orientation", spView.Orientation.ToString());
         }
 
+        private void mnuShowFilter_CheckedChanged(object sender, EventArgs e)
+        {
+            pnlFilter.Visible = mnuShowFilter.Checked;
+        }
+
         private void tvSelection_AfterSelect(object sender, TreeViewEventArgs e)
         {
             DisplayNodeInGrid(e.Node, mnuShowElements.Checked, mnuShowAttributes.Checked);
@@ -418,6 +437,43 @@ namespace FiddlerGridView
                         node.BackColor = tvSelection.BackColor;
                         SetChildNodeSelection(node, -1, -1);
                     }
+                }
+            }
+        }
+
+        private void txtFilter_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == 13)
+            {
+                cbFilter.Checked = !cbFilter.Checked;
+            }
+        }
+
+        private void txtFilter_TextChanged(object sender, EventArgs e)
+        {
+            SetFilter();
+        }
+
+        private void SetFilter()
+        {
+            if (_bindingSource != null)
+            {
+                try
+                {
+                    if (cbFilter.Checked)
+                    {
+                        _bindingSource.Filter = txtFilter.Text;
+                    }
+                    else
+                    {
+                        _bindingSource.Filter = "";
+                    }
+                    lblFilterStatus.Text = "";
+                }
+                catch (Exception ex)
+                {
+                    cbFilter.Checked = false;
+                    lblFilterStatus.Text = ex.Message;
                 }
             }
         }
@@ -517,6 +573,11 @@ namespace FiddlerGridView
         public void SetFontSize(float flSizeInPoints)
         {
             Font = new Font(Font.FontFamily, flSizeInPoints);
+        }
+
+        private void cbFilter_CheckedChanged(object sender, EventArgs e)
+        {
+            SetFilter();
         }
         #endregion
     }
