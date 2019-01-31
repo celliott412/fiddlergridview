@@ -274,6 +274,7 @@ namespace FiddlerGridView
                         _bindingSource = new BindingSource();
                     }
 
+                    _bindingSource.Filter = "";
                     _bindingSource.DataSource = dt;
                     SetFilter();
 
