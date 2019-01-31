@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Fiddler;
-using System.Xml;
-using Newtonsoft.Json;
-using System.Windows.Forms;
+﻿using Fiddler;
 
 namespace FiddlerGridView
 {

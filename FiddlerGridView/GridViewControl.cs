@@ -1,14 +1,11 @@
-﻿using System;
+﻿using Fiddler;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
 using System.Data;
-using System.Text;
-using System.Windows.Forms;
-using FiddlerGridView.Properties;
-using Fiddler;
-using System.Xml;
+using System.Drawing;
 using System.Linq;
+using System.Windows.Forms;
+using System.Xml;
 
 [assembly: Fiddler.RequiredVersion("2.2.7.0")]
 

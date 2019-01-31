@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Fiddler;
-using System.Xml;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Xml.Serialization;
-using System.IO;
-using System.Dynamic;
+﻿using Fiddler;
 using Fiddler.WebFormats;
+using System;
 using System.Collections;
 using System.Globalization;
+using System.Text;
+using System.Xml;
 
 namespace FiddlerGridView
 {
