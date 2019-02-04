@@ -50,38 +50,87 @@ namespace FiddlerGridView
             }
         }
 
-        private string GetNodeText(XmlNode node)
+        private void btnCollapseAll_Click(object sender, EventArgs e)
         {
-            if (node.Name == "Object")
+            BeginUpdate();
+            tvSelection.CollapseAll();
+            if (tvSelection.Nodes.Count == 1)
             {
-                return "{}";
+                tvSelection.Nodes[0].Expand();
             }
-            else
-            {
-                if (node.Name == "Array")
-                {
-                    return "[]";
-                }
-            }
-            return node.Name;
+            EndUpdate();
         }
 
-        private string GetSafeName(DataColumnCollection existingCols, string name, string possiblePrefix)
+        private void btnExpandAll_Click(object sender, EventArgs e)
         {
-            if (existingCols.Contains(name))
+            BeginUpdate();
+            tvSelection.ExpandAll();
+            if (tvSelection.SelectedNode != null)
             {
-                if (existingCols.Contains(possiblePrefix + name))
+                tvSelection.SelectedNode.EnsureVisible();
+            }
+            else if (tvSelection.Nodes.Count > 0)
+            {
+                tvSelection.Nodes[0].EnsureVisible();
+            }
+            EndUpdate();
+        }
+
+        /// <summary>
+        /// Count how many times a column is used, this is then used to calculate a percentage of use for each column,
+        /// The summed percentages are then divided by the total number of columns to obtain an overall percentage
+        ///
+        /// Example:
+        ///     A       B       C       D
+        ///     A       C       D
+        ///     A       B       C
+        ///             B       D
+        ///     A       B       C       D
+        ///
+        ///    (0.8 +   0.8 +   0.8 +   0.8) / 4 = 0.8
+        /// </summary>
+        /// <param name="lines"></param>
+        /// <returns></returns>
+        private double DetermineSimilarity(IEnumerable<string> lines)
+        {
+            var propertyNameCounts = new Dictionary<string, int>();
+            foreach (var line in lines)
+            {
+                var properties = line.Split('|');
+                foreach (var name in properties)
                 {
-                    return possiblePrefix + name + $"_{existingCols.Count}";
-                }
-                else
-                {
-                    return possiblePrefix + name;
+                    if (propertyNameCounts.TryGetValue(name, out int count))
+                    {
+                        propertyNameCounts[name]++;
+                    }
+                    else
+                    {
+                        propertyNameCounts.Add(name, 1);
+                    }
                 }
             }
-            else
+
+            var sum = 0.0d;
+            if (propertyNameCounts.Count > 0)
             {
-                return name;
+                foreach (var kvp in propertyNameCounts)
+                {
+                    sum += kvp.Value / lines.Count();
+                }
+                return sum / propertyNameCounts.Count;
+            }
+
+            return 0d;
+        }
+
+        private void dgvView_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (tvSelection.SelectedNode != null)
+            {
+                if ((tvSelection.SelectedNode.Nodes.Count > 0) && (e.RowIndex < tvSelection.SelectedNode.Nodes.Count))
+                {
+                    SetChildNodeSelection(tvSelection.SelectedNode, e.RowIndex, e.ColumnIndex);
+                }
             }
         }
 
@@ -152,7 +201,9 @@ namespace FiddlerGridView
                                 }
                             }
 
-                            if ((count == 1) || ((count > 1) && !sigs.All(p => p == sigs.First())))
+                            var similarity = DetermineSimilarity(sigs);
+                            //if ((count == 1) || ((count > 1) && !sigs.All(p => p == sigs.First())))
+                            if ((count == 1) || ((count > 1) && (similarity < 0.75d)))
                             {
                                 objectOrArray = true;
                                 columnMappings.Add(dt.Columns.Add(GetSafeName(dt.Columns, "Name", "")), "Name");
@@ -287,6 +338,16 @@ namespace FiddlerGridView
             }
         }
 
+        private void DisplayOptions_CheckedChanged(object sender, EventArgs e)
+        {
+            if (tvSelection.SelectedNode != null)
+            {
+                DisplayNodeInGrid(tvSelection.SelectedNode, mnuShowElements.Checked, mnuShowAttributes.Checked);
+            }
+            FiddlerApplication.Prefs.SetBoolPref("fiddler.inspectors.gridview.showattributes", mnuShowAttributes.Checked);
+            FiddlerApplication.Prefs.SetBoolPref("fiddler.inspectors.gridview.showelements", mnuShowElements.Checked);
+        }
+
         private string GetAttributeValueByName(XmlAttributeCollection attributes, string name)
         {
             foreach (XmlAttribute attribute in attributes)
@@ -317,6 +378,41 @@ namespace FiddlerGridView
             return null;
         }
 
+        private string GetNodeText(XmlNode node)
+        {
+            if (node.Name == "Object")
+            {
+                return "{}";
+            }
+            else
+            {
+                if (node.Name == "Array")
+                {
+                    return "[]";
+                }
+            }
+            return node.Name;
+        }
+
+        private string GetSafeName(DataColumnCollection existingCols, string name, string possiblePrefix)
+        {
+            if (existingCols.Contains(name))
+            {
+                if (existingCols.Contains(possiblePrefix + name))
+                {
+                    return possiblePrefix + name + $"_{existingCols.Count}";
+                }
+                else
+                {
+                    return possiblePrefix + name;
+                }
+            }
+            else
+            {
+                return name;
+            }
+        }
+
         private string GetValueForNode(XmlNode node)
         {
             if (node.FirstChild != null)
@@ -330,56 +426,9 @@ namespace FiddlerGridView
                 return "(null)";
         }
 
-        private void spView_SplitterMoved(object sender, SplitterEventArgs e)
+        private void mnuShowFilter_CheckedChanged(object sender, EventArgs e)
         {
-            FiddlerApplication.Prefs.SetInt32Pref("fiddler.inspectors.gridview.splitterdistance", spView.SplitterDistance);
-        }
-
-        private void btnCollapseAll_Click(object sender, EventArgs e)
-        {
-            BeginUpdate();
-            tvSelection.CollapseAll();
-            if (tvSelection.Nodes.Count == 1)
-            {
-                tvSelection.Nodes[0].Expand();
-            }
-            EndUpdate();
-        }
-
-        private void btnExpandAll_Click(object sender, EventArgs e)
-        {
-            BeginUpdate();
-            tvSelection.ExpandAll();
-            if (tvSelection.SelectedNode != null)
-            {
-                tvSelection.SelectedNode.EnsureVisible();
-            }
-            else if (tvSelection.Nodes.Count > 0)
-            {
-                tvSelection.Nodes[0].EnsureVisible();
-            }
-            EndUpdate();
-        }
-
-        private void DisplayOptions_CheckedChanged(object sender, EventArgs e)
-        {
-            if (tvSelection.SelectedNode != null)
-            {
-                DisplayNodeInGrid(tvSelection.SelectedNode, mnuShowElements.Checked, mnuShowAttributes.Checked);
-            }
-            FiddlerApplication.Prefs.SetBoolPref("fiddler.inspectors.gridview.showattributes", mnuShowAttributes.Checked);
-            FiddlerApplication.Prefs.SetBoolPref("fiddler.inspectors.gridview.showelements", mnuShowElements.Checked);
-        }
-
-        private void dgvView_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (tvSelection.SelectedNode != null)
-            {
-                if ((tvSelection.SelectedNode.Nodes.Count > 0) && (e.RowIndex < tvSelection.SelectedNode.Nodes.Count))
-                {
-                    SetChildNodeSelection(tvSelection.SelectedNode, e.RowIndex, e.ColumnIndex);
-                }
-            }
+            pnlFilter.Visible = mnuShowFilter.Checked;
         }
 
         private void mnuShowTree_CheckedChanged(object sender, EventArgs e)
@@ -392,26 +441,6 @@ namespace FiddlerGridView
         {
             spView.Orientation = mnuSplitVertical.Checked ? Orientation.Vertical : Orientation.Horizontal;
             FiddlerApplication.Prefs.SetStringPref("fiddler.inspectors.gridview.orientation", spView.Orientation.ToString());
-        }
-
-        private void mnuShowFilter_CheckedChanged(object sender, EventArgs e)
-        {
-            pnlFilter.Visible = mnuShowFilter.Checked;
-        }
-
-        private void tvSelection_AfterSelect(object sender, TreeViewEventArgs e)
-        {
-            DisplayNodeInGrid(e.Node, mnuShowElements.Checked, mnuShowAttributes.Checked);
-        }
-
-        private void tvSelection_KeyDown(object sender, KeyEventArgs e)
-        {
-            if ((e.Control && (e.KeyCode == Keys.C)) && (tvSelection.SelectedNode != null))
-            {
-                Utilities.CopyToClipboard(tvSelection.SelectedNode.Text);
-                e.Handled = true;
-                e.SuppressKeyPress = true;
-            }
         }
 
         private void SetChildNodeSelection(TreeNode parent, int rowIndex, int colIndex)
@@ -439,19 +468,6 @@ namespace FiddlerGridView
             }
         }
 
-        private void txtFilter_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == 13)
-            {
-                cbFilter.Checked = !cbFilter.Checked;
-            }
-        }
-
-        private void txtFilter_TextChanged(object sender, EventArgs e)
-        {
-            SetFilter();
-        }
-
         private void SetFilter()
         {
             if (_bindingSource != null)
@@ -474,6 +490,39 @@ namespace FiddlerGridView
                     lblFilterStatus.Text = ex.Message;
                 }
             }
+        }
+
+        private void spView_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+            FiddlerApplication.Prefs.SetInt32Pref("fiddler.inspectors.gridview.splitterdistance", spView.SplitterDistance);
+        }
+
+        private void tvSelection_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+            DisplayNodeInGrid(e.Node, mnuShowElements.Checked, mnuShowAttributes.Checked);
+        }
+
+        private void tvSelection_KeyDown(object sender, KeyEventArgs e)
+        {
+            if ((e.Control && (e.KeyCode == Keys.C)) && (tvSelection.SelectedNode != null))
+            {
+                Utilities.CopyToClipboard(tvSelection.SelectedNode.Text);
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+        }
+
+        private void txtFilter_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == 13)
+            {
+                cbFilter.Checked = !cbFilter.Checked;
+            }
+        }
+
+        private void txtFilter_TextChanged(object sender, EventArgs e)
+        {
+            SetFilter();
         }
         #endregion
 
