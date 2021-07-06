@@ -611,6 +611,11 @@ namespace FiddlerGridView
             }
         }
 
+        public void DisplayStatus(string value)
+        {
+            lblGridViewStatus.Text = value;
+        }
+
         public void EndUpdate()
         {
             tvSelection.EndUpdate();

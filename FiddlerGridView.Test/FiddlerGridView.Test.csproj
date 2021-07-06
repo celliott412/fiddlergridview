@@ -34,7 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Fiddler">
-      <HintPath>..\FiddlerGridView\bin\Debug\Fiddler.exe</HintPath>
+      <HintPath>..\..\..\..\AppData\Local\Programs\Fiddler\Fiddler.exe</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

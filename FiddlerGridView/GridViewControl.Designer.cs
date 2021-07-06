@@ -74,8 +74,8 @@
             // 
             this.spView.Panel2.Controls.Add(this.dgvView);
             this.spView.Panel2.Controls.Add(this.pnlFilter);
-            this.spView.Size = new System.Drawing.Size(320, 298);
-            this.spView.SplitterDistance = 96;
+            this.spView.Size = new System.Drawing.Size(320, 297);
+            this.spView.SplitterDistance = 95;
             this.spView.TabIndex = 0;
             this.spView.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.spView_SplitterMoved);
             // 
@@ -86,7 +86,7 @@
             this.tvSelection.HideSelection = false;
             this.tvSelection.Location = new System.Drawing.Point(0, 0);
             this.tvSelection.Name = "tvSelection";
-            this.tvSelection.Size = new System.Drawing.Size(320, 96);
+            this.tvSelection.Size = new System.Drawing.Size(320, 95);
             this.tvSelection.TabIndex = 0;
             this.tvSelection.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvSelection_AfterSelect);
             this.tvSelection.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tvSelection_KeyDown);
@@ -221,23 +221,23 @@
             this.lblGridViewStatus,
             this.lblFilterStatus,
             this.pbWorking});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 298);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 297);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(320, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(320, 23);
             this.statusStrip1.TabIndex = 1;
             this.statusStrip1.Text = "statusStrip1";
             // 
             // lblGridViewStatus
             // 
             this.lblGridViewStatus.Name = "lblGridViewStatus";
-            this.lblGridViewStatus.Size = new System.Drawing.Size(152, 17);
+            this.lblGridViewStatus.Size = new System.Drawing.Size(86, 18);
             this.lblGridViewStatus.Spring = true;
             this.lblGridViewStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // lblFilterStatus
             // 
             this.lblFilterStatus.Name = "lblFilterStatus";
-            this.lblFilterStatus.Size = new System.Drawing.Size(152, 17);
+            this.lblFilterStatus.Size = new System.Drawing.Size(86, 18);
             this.lblFilterStatus.Spring = true;
             // 
             // pbWorking

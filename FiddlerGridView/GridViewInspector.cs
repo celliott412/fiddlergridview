@@ -26,7 +26,9 @@ namespace FiddlerGridView
             {
                 ArrayList arrayList = o as ArrayList;
                 if (arrayList.Count <= 0)
+                {
                     return;
+                }
                 if (bParentIsArray)
                 {
                     XmlElement node = doc.CreateElement("Array");
@@ -35,13 +37,17 @@ namespace FiddlerGridView
                     ++iNodeCount;
                 }
                 foreach (object o1 in arrayList)
+                {
                     this.CreateNodes(doc, inTreeNode, o1, true, ref iNodeCount);
+                }
             }
             else if (o is Hashtable)
             {
                 Hashtable hashtable = o as Hashtable;
                 if (hashtable.Count <= 0)
+                {
                     return;
+                }
                 if (bParentIsArray && hashtable.Count > 1)
                 {
                     XmlElement node = doc.CreateElement("Object");
@@ -63,7 +69,7 @@ namespace FiddlerGridView
                 string sText = o != null ? (!(o is DateTime) ? (!(o is double) ? o.ToString() : ((double)o).ToString("R", (IFormatProvider)CultureInfo.InvariantCulture)) : ((DateTime)o).ToString("r")) : "(null)";
                 if (bParentIsArray)
                 {
-                    XmlElement node = doc.CreateElement(XmlConvert.EncodeNmToken(sText));
+                    XmlElement node = doc.CreateElement(XmlConvert.EncodeLocalName(sText));
                     inTreeNode.AppendChild(node);
                     ++iNodeCount;
                 }
@@ -196,8 +202,9 @@ namespace FiddlerGridView
                             _control.Display(CreateXml(bodyString, GetViewContentType()));
                         }
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        _control.DisplayStatus(ex.Message);
                         Clear();
                     }
                 }
